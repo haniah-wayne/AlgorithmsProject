@@ -1,0 +1,41 @@
+#include <iostream>      
+#include <vector>        
+#include <list>          
+#include <string>        
+using namespace std;
+
+
+int hashVertex(string vertex, int tableSize) {
+    int asciiValue = (int)vertex[0];     // get ASCII value of initial character
+    int index = asciiValue % tableSize;  // compress into valid index range
+    return index;                        // return index where this vertex belongs
+}
+
+// Build adjacency list using the manual hash function 
+vector<list<pair<string,int>>> BuildAdjList_ManualHash(
+        vector<string> vertices, vector<string> uList, vector<string> vList, vector<int> wList)                       
+        //list of vertex names, starting vertices (u), ending vertices (v), weights (w)
+{
+    int tableSize = vertices.size();             // adjacency table size = number of vertices
+    
+    // Create adjacencyList: an array of linked lists
+    vector<list<pair<string,int>>> adjacencyList(tableSize);  
+    // Each index will hold a linked list of (v, w) pairs
+
+    // Insert edges one by one
+    for (int i = 0; i < uList.size(); i++) {     // loop through all edges
+        
+        string u = uList[i];                     // get starting vertex
+        string v = vList[i];                     // get ending vertex
+        int w = wList[i];                        // get weight
+
+        int index = hashVertex(u, tableSize);    // compute hash index for u
+
+        // Append the neighbor (v, w) into the adjacency list at this index
+        adjacencyList[index].push_back( make_pair(v, w) );
+    }
+
+    return adjacencyList;   // return the completed adjacency list
+}
+
+/
