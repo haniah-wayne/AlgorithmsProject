@@ -1,151 +1,37 @@
-//Algorithm 2,Nisas
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <vector>
+#include <list>
 #include <string>
-
+#include <unordered_map>
 using namespace std;
 
-// Node for the adjacency list (linked list)
-struct Node {
-    string vertex;   // endV
-    int weight;      // edge weight
-    Node* next;      // pointer to next node in list
+// adjacencyList: map from vertex label -> list of (destination, weight)
+typedef unordered_map<string, list<pair<string,int>>> AdjList;
 
-    Node(const string& v, int w)
-        : vertex(v), weight(w), next(nullptr) {}
-};
+// Build adjacency list using direct append (Algorithm 1)
+AdjList BuildDirectAppend(const vector<string> &vertices,
+                          const vector<string> &uList,
+                          const vector<string> &vList,
+                          const vector<int>    &wList)
+{
+    AdjList adjacencyList;              // starts an adjacency list
 
-// Find the index of a vertex name in the vertices vector
-int findIndex(const vector<string>& vertices, const string& startV) {
-    for (int i = 0; i < (int)vertices.size(); ++i) {
-        if (vertices[i] == startV) {
-            return i;
-        }
-    }
-    return -1; // not found (should not happen if input is correct)
-}
-
-int main() {
-    // ===== START =====
-    // Open the input file
-    string filename;
-    cout << "Enter input file name: ";
-    cin >> filename;
-
-    ifstream inFile(filename);
-    if (!inFile) {
-        cerr << "Error: could not open file " << filename << endl;
-        return 1;
+    // Create an empty list for each vertex
+    for (const string &v : vertices) {  // for each vertex v in vertices
+        adjacencyList[v] = list<pair<string,int>>();   // adjacencyList[v] = empty list
     }
 
-    // The first line has all the vertex names
-    string firstLine;
-    if (!getline(inFile, firstLine)) {
-        cerr << "Error: file is empty." << endl;
-        return 1;
+    // Add each edge directly to the list
+    for (size_t i = 0; i < uList.size(); ++i) {   // for each (source, destination, weight)
+        string source      = uList[i];
+        string destination = vList[i];
+        int weight         = wList[i];
+
+        pair<string,int> edge = make_pair(destination, weight); // edge = (destination, weight)
+
+        // Append this edge to the source vertex
+        adjacencyList[source].push_back(edge);  // adjacencyList[source].append(edge)
     }
 
-    // Read the first line and split it into the list called vertices
-    vector<string> vertices;
-    // Replace commas with spaces so we can >> easily
-    for (char& c : firstLine) {
-        if (c == ',') c = ' ';
-    }
-    string name;
-    stringstream vertexStream(firstLine);
-    while (vertexStream >> name) {
-        vertices.push_back(name);
-    }
-
-    // Make an adjacency list the same size as vertices
-    // Create adjList array
-    // For each spot in adjList, set it to NULL (will store linked lists later)
-    int n = vertices.size();
-    vector<Node*> adjList(n, nullptr);   // all entries start as NULL
-
-    // Process the rest of the file (each line is an edge)
-    string line;
-    while (getline(inFile, line)) {
-        if (line.empty()) {
-            continue; // skip blank lines
-        }
-
-        // Remove commas, then split into: startV, endV, weight
-        for (char& c : line) {
-            if (c == ',') c = ' ';
-        }
-
-        string startV, endV;
-        int weight;
-
-        stringstream edgeStream(line);
-        if (!(edgeStream >> startV >> endV >> weight)) {
-            cerr << "Warning: could not parse line: " << line << endl;
-            continue;
-        }
-
-        // Figure out where the start vertex belongs in the adjList
-        // Find the position (index) of startV in vertices
-        int index = findIndex(vertices, startV);
-        if (index == -1) {
-            cerr << "Warning: start vertex " << startV
-                 << " not found in vertex list." << endl;
-            continue;
-        }
-
-        // Build a node for the adjacency list
-        // Make a new Node:
-        //   node.vertex = endV
-        //   node.weight = weight
-        //   node.next   = NULL
-        Node* node = new Node(endV, weight);
-
-        // Attach the node to the correct list
-        // IF adjList[index] is empty:
-        if (adjList[index] == nullptr) {
-            // adjList[index] = node
-            adjList[index] = node;
-        } else {
-            // ELSE:
-            //   mover = adjList[index]
-            Node* mover = adjList[index];
-
-            //   while mover.next != NULL:
-            //       mover = mover.next
-            while (mover->next != nullptr) {
-                mover = mover->next;
-            }
-
-            //   mover.next = node
-            mover->next = node;
-        }
-    }
-
-    inFile.close();
-
-    // OPTIONAL: print adjacency list so you can show it works
-    cout << "\nAdjacency List:\n";
-    for (int i = 0; i < n; ++i) {
-        cout << vertices[i] << " -> ";
-        Node* curr = adjList[i];
-        while (curr != nullptr) {
-            cout << "(" << curr->vertex << ", " << curr->weight << ") ";
-            curr = curr->next;
-        }
-        cout << endl;
-    }
-
-    // Clean up dynamically allocated memory
-    for (int i = 0; i < n; ++i) {
-        Node* curr = adjList[i];
-        while (curr != nullptr) {
-            Node* temp = curr;
-            curr = curr->next;
-            delete temp;
-        }
-    }
-
-    return 0;
+    return adjacencyList;   // return adjacencyList
 }
